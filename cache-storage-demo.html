@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Offline Weather App</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                text-align: center;
+            }
+            .weather-card {
+                background-color: #f0f0f0;
+                border-radius: 10px;
+                padding: 20px;
+                margin-top: 20px;
+            }
+            .offline-message {
+                color: red;
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Weather App</h1>
+        <p class="offline-message">
+            You are currently offline. Displaying cached data.
+        </p>
+        <button id="refresh-btn">Refresh Weather</button>
+        <div id="weather-container"></div>
+        <p id="last-updated"></p>
+
+        <script>
+            const CACHE_NAME = "weather-app-v2";
+            const CACHE_ASSETS = ["/", "/index.html", "/sw.js"];
+
+            // Mock API function to simulate fetching weather data
+            function fetchWeatherData() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        const weatherData = [
+                            {
+                                city: "New York",
+                                temp: Math.floor(Math.random() * 10) + 20,
+                                condition: "Sunny",
+                            },
+                            {
+                                city: "London",
+                                temp: Math.floor(Math.random() * 10) + 15,
+                                condition: "Cloudy",
+                            },
+                            {
+                                city: "Tokyo",
+                                temp: Math.floor(Math.random() * 10) + 25,
+                                condition: "Rainy",
+                            },
+                            {
+                                city: "Sydney",
+                                temp: Math.floor(Math.random() * 10) + 25,
+                                condition: "Clear",
+                            },
+                        ];
+                        resolve(weatherData);
+                    }, 1000); // Simulate network delay
+                });
+            }
+
+            // Service Worker Registration
+            if ("serviceWorker" in navigator) {
+                navigator.serviceWorker
+                    .register("/sw.js")
+                    .then((registration) => {
+                        console.log(
+                            "Service Worker registered with scope:",
+                            registration.scope
+                        );
+                    })
+                    .catch((error) => {
+                        console.error(
+                            "Service Worker registration failed:",
+                            error
+                        );
+                    });
+            }
+
+            function displayWeather(data) {
+                const container = document.getElementById("weather-container");
+                container.innerHTML = "";
+                data.forEach((item) => {
+                    const card = document.createElement("div");
+                    card.className = "weather-card";
+                    card.innerHTML = `
+                    <h2>${item.city}</h2>
+                    <p>Temperature: ${item.temp}°C</p>
+                    <p>Condition: ${item.condition}</p>
+                `;
+                    container.appendChild(card);
+                });
+            }
+
+            async function updateWeather() {
+                try {
+                    const newData = await fetchWeatherData();
+
+                    // Store the new data in the cache
+                    const cache = await caches.open(CACHE_NAME);
+                    await cache.put(
+                        "/weather-data",
+                        new Response(JSON.stringify(newData))
+                    );
+
+                    displayWeather(newData);
+                    updateLastUpdated();
+                } catch (error) {
+                    console.error("Error updating weather:", error);
+                    alert(
+                        "Failed to update weather. Please check your internet connection."
+                    );
+                }
+            }
+
+            async function loadWeather() {
+                try {
+                    const cache = await caches.open(CACHE_NAME);
+                    const response = await cache.match("/weather-data");
+                    if (response) {
+                        const data = await response.json();
+                        displayWeather(data);
+                        updateLastUpdated();
+                    } else {
+                        // If no cached data, perform initial update
+                        await updateWeather();
+                    }
+                } catch (error) {
+                    console.error("Error loading weather:", error);
+                }
+            }
+
+            function updateLastUpdated() {
+                const now = new Date();
+                localStorage.setItem("lastUpdated", now.toISOString());
+                document.getElementById(
+                    "last-updated"
+                ).textContent = `Last updated: ${now.toLocaleString()}`;
+            }
+
+            document
+                .getElementById("refresh-btn")
+                .addEventListener("click", updateWeather);
+
+            // Check online/offline status
+            function updateOnlineStatus() {
+                const offlineMessage =
+                    document.querySelector(".offline-message");
+                const refreshBtn = document.getElementById("refresh-btn");
+                if (navigator.onLine) {
+                    offlineMessage.style.display = "none";
+                    refreshBtn.disabled = false;
+                } else {
+                    offlineMessage.style.display = "block";
+                    refreshBtn.disabled = true;
+                }
+            }
+
+            window.addEventListener("online", updateOnlineStatus);
+            window.addEventListener("offline", updateOnlineStatus);
+
+            // Initial load
+            loadWeather();
+            updateOnlineStatus();
+        </script>
+    </body>
+</html>

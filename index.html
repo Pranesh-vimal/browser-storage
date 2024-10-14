@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Web Storage Guide</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            h1,
+            h2 {
+                color: #2c3e50;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+            }
+            th,
+            td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+            .storage-type {
+                background-color: #ecf0f1;
+                padding: 15px;
+                margin-bottom: 20px;
+                border-radius: 5px;
+            }
+            .pros-cons {
+                display: flex;
+                justify-content: space-between;
+            }
+            .pros,
+            .cons {
+                width: 48%;
+            }
+            .demo-link {
+                display: inline-block;
+                background-color: #3498db;
+                color: white;
+                padding: 10px 15px;
+                text-decoration: none;
+                border-radius: 5px;
+                margin-top: 10px;
+            }
+            .demo-link:hover {
+                background-color: #2980b9;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Web Storage Guide</h1>
+
+        <div class="storage-type">
+            <h2>Local Storage</h2>
+            <p>
+                Local Storage is a web storage object that allows you to store
+                key-value pairs in the browser with no expiration date.
+            </p>
+            <table>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Capacity</td>
+                    <td>~5-10MB (varies by browser)</td>
+                </tr>
+                <tr>
+                    <td>Persistence</td>
+                    <td>Until cleared by user or programmatically</td>
+                </tr>
+                <tr>
+                    <td>Accessibility</td>
+                    <td>Any window/tab from the same origin</td>
+                </tr>
+                <tr>
+                    <td>Data Type</td>
+                    <td>String key-value pairs</td>
+                </tr>
+            </table>
+            <div class="pros-cons">
+                <div class="pros">
+                    <h3>Pros:</h3>
+                    <ul>
+                        <li>Simple to use</li>
+                        <li>Persistent across browser sessions</li>
+                        <li>Relatively large storage capacity</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h3>Cons:</h3>
+                    <ul>
+                        <li>
+                            Limited to string data (requires serialization for
+                            objects)
+                        </li>
+                        <li>Synchronous API (can block the main thread)</li>
+                        <li>No built-in expiration mechanism</li>
+                    </ul>
+                </div>
+            </div>
+            <a href="local-storage-demo.html" class="demo-link"
+                >Local Storage Demo</a
+            >
+        </div>
+
+        <div class="storage-type">
+            <h2>Session Storage</h2>
+            <p>
+                Session Storage is similar to Local Storage but limited to a
+                single browser session. Data is cleared when the session ends
+                (i.e., when the browser tab is closed).
+            </p>
+            <table>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Capacity</td>
+                    <td>~5-10MB (varies by browser)</td>
+                </tr>
+                <tr>
+                    <td>Persistence</td>
+                    <td>Until the browser tab is closed</td>
+                </tr>
+                <tr>
+                    <td>Accessibility</td>
+                    <td>Only the window/tab that created it</td>
+                </tr>
+                <tr>
+                    <td>Data Type</td>
+                    <td>String key-value pairs</td>
+                </tr>
+            </table>
+            <div class="pros-cons">
+                <div class="pros">
+                    <h3>Pros:</h3>
+                    <ul>
+                        <li>Simple to use</li>
+                        <li>Isolated to individual tabs</li>
+                        <li>Automatically cleared on session end</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h3>Cons:</h3>
+                    <ul>
+                        <li>Limited to string data</li>
+                        <li>Data lost when tab is closed</li>
+                        <li>Synchronous API</li>
+                    </ul>
+                </div>
+            </div>
+            <a href="session-storage-demo.html" class="demo-link"
+                >Session Storage Demo</a
+            >
+        </div>
+
+        <div class="storage-type">
+            <h2>IndexedDB</h2>
+            <p>
+                IndexedDB is a low-level API for client-side storage of
+                significant amounts of structured data, including files/blobs.
+            </p>
+            <table>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Capacity</td>
+                    <td>Generally unlimited (browser dependent)</td>
+                </tr>
+                <tr>
+                    <td>Persistence</td>
+                    <td>Until cleared by user or programmatically</td>
+                </tr>
+                <tr>
+                    <td>Accessibility</td>
+                    <td>Any window/tab from the same origin</td>
+                </tr>
+                <tr>
+                    <td>Data Type</td>
+                    <td>JavaScript objects, arrays, files</td>
+                </tr>
+            </table>
+            <div class="pros-cons">
+                <div class="pros">
+                    <h3>Pros:</h3>
+                    <ul>
+                        <li>Large storage capacity</li>
+                        <li>Can store structured data</li>
+                        <li>Supports transactions</li>
+                        <li>Asynchronous API</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h3>Cons:</h3>
+                    <ul>
+                        <li>More complex API</li>
+                        <li>Steeper learning curve</li>
+                        <li>Less browser support for older versions</li>
+                    </ul>
+                </div>
+            </div>
+            <a href="indexeddb-demo.html" class="demo-link">IndexedDB Demo</a>
+        </div>
+
+        <div class="storage-type">
+            <h2>Cookies</h2>
+            <p>
+                Cookies are small pieces of data stored as text files by the
+                browser. They're commonly used for maintaining user sessions and
+                preferences.
+            </p>
+            <table>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Capacity</td>
+                    <td>~4KB per cookie, ~50 cookies per domain</td>
+                </tr>
+                <tr>
+                    <td>Persistence</td>
+                    <td>Can be set to expire or persist indefinitely</td>
+                </tr>
+                <tr>
+                    <td>Accessibility</td>
+                    <td>
+                        Any window/tab from the same origin, sent with every
+                        HTTP request
+                    </td>
+                </tr>
+                <tr>
+                    <td>Data Type</td>
+                    <td>String key-value pairs</td>
+                </tr>
+            </table>
+            <div class="pros-cons">
+                <div class="pros">
+                    <h3>Pros:</h3>
+                    <ul>
+                        <li>Widely supported</li>
+                        <li>Can be accessed server-side</li>
+                        <li>Can set expiration dates</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h3>Cons:</h3>
+                    <ul>
+                        <li>Limited storage capacity</li>
+                        <li>
+                            Sent with every HTTP request (bandwidth overhead)
+                        </li>
+                        <li>Can be a security risk if not properly handled</li>
+                    </ul>
+                </div>
+            </div>
+            <a href="cookies-demo.html" class="demo-link">Cookies Demo</a>
+        </div>
+
+        <div class="storage-type">
+            <h2>Cache Storage</h2>
+            <p>
+                Cache Storage is part of the Service Worker API and allows for
+                storing of Request/Response object pairs for offline use.
+            </p>
+            <table>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Capacity</td>
+                    <td>Generally unlimited (browser dependent)</td>
+                </tr>
+                <tr>
+                    <td>Persistence</td>
+                    <td>Until cleared by user or programmatically</td>
+                </tr>
+                <tr>
+                    <td>Accessibility</td>
+                    <td>Through Service Worker</td>
+                </tr>
+                <tr>
+                    <td>Data Type</td>
+                    <td>Request/Response pairs</td>
+                </tr>
+            </table>
+            <div class="pros-cons">
+                <div class="pros">
+                    <h3>Pros:</h3>
+                    <ul>
+                        <li>Ideal for offline-first applications</li>
+                        <li>Can cache entire responses</li>
+                        <li>Programmatically controllable</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h3>Cons:</h3>
+                    <ul>
+                        <li>Requires Service Worker setup</li>
+                        <li>More complex to implement</li>
+                        <li>Limited to newer browsers</li>
+                    </ul>
+                </div>
+            </div>
+            <a href="cache-storage-demo.html" class="demo-link"
+                >Cache Storage Demo</a
+            >
+        </div>
+
+        <div class="storage-type">
+            <h2>Shared Storage</h2>
+            <p>
+                Shared Storage is a web API that allows limited cross-site
+                storage access while maintaining user privacy. It's designed for
+                specific use cases where information needs to be shared across
+                different sites without compromising privacy or enabling
+                cross-site tracking.
+            </p>
+            <table>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Capacity</td>
+                    <td>Limited, specific to implementation</td>
+                </tr>
+                <tr>
+                    <td>Persistence</td>
+                    <td>
+                        Persistent across sites, subject to browser policies
+                    </td>
+                </tr>
+                <tr>
+                    <td>Accessibility</td>
+                    <td>
+                        Cross-site, but with restricted access through specific
+                        APIs
+                    </td>
+                </tr>
+                <tr>
+                    <td>Data Type</td>
+                    <td>
+                        Key-value pairs, accessed through specialized worklets
+                    </td>
+                </tr>
+            </table>
+            <div class="pros-cons">
+                <div class="pros">
+                    <h3>Pros:</h3>
+                    <ul>
+                        <li>Enables cross-site data sharing</li>
+                        <li>Privacy-preserving by design</li>
+                        <li>
+                            Suitable for specific use cases like frequency
+                            capping
+                        </li>
+                        <li>Provides alternatives to third-party cookies</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h3>Cons:</h3>
+                    <ul>
+                        <li>Limited to specific predefined operations</li>
+                        <li>No direct read access from main page context</li>
+                        <li>Newer API with limited browser support</li>
+                        <li>
+                            More complex to implement than traditional storage
+                            methods
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <a href="shared-storage-demo.html" class="demo-link"
+                >Shared Storage Demo</a
+            >
+        </div>
+
+        <!-- <div class="storage-type">
+            <h2>Storage Bucket</h2>
+            <p>
+                Storage Bucket is a part of the Storage Standard, providing a
+                more flexible and powerful way to manage storage in web
+                applications.
+            </p>
+            <table>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Capacity</td>
+                    <td>Configurable, can request specific quota</td>
+                </tr>
+                <tr>
+                    <td>Persistence</td>
+                    <td>Can be made persistent, reducing risk of data loss</td>
+                </tr>
+                <tr>
+                    <td>Accessibility</td>
+                    <td>
+                        Any window/tab from the same origin, with option for
+                        shared or private buckets
+                    </td>
+                </tr>
+                <tr>
+                    <td>Data Type</td>
+                    <td>Various, supports complex data structures</td>
+                </tr>
+            </table>
+            <div class="pros-cons">
+                <div class="pros">
+                    <h3>Pros:</h3>
+                    <ul>
+                        <li>Flexible quota management</li>
+                        <li>Persistence controls</li>
+                        <li>Storage estimation capabilities</li>
+                        <li>Expiration and durability options</li>
+                        <li>Support for shared and private buckets</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h3>Cons:</h3>
+                    <ul>
+                        <li>Newer API with limited browser support</li>
+                        <li>More complex than simple key-value storage</li>
+                        <li>
+                            May require fallback mechanisms for compatibility
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <a href="storage-bucket-demo.html" class="demo-link"
+                >Storage Bucket Demo</a
+            >
+        </div> -->
+    </body>
+</html>

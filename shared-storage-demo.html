@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Shared Storage Conceptual Demo</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                padding: 20px;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+            .note {
+                background-color: #fff3cd;
+                border: 1px solid #ffeeba;
+                border-radius: 5px;
+                padding: 10px;
+                margin-bottom: 20px;
+            }
+            button {
+                padding: 10px;
+                margin: 5px;
+                cursor: pointer;
+            }
+            #output,
+            #adSpace {
+                background-color: #f0f0f0;
+                padding: 10px;
+                border-radius: 5px;
+                margin-top: 20px;
+            }
+            #adSpace {
+                height: 100px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Shared Storage Conceptual Demo: Ad Frequency Capping</h1>
+
+        <div class="note">
+            <strong>Note:</strong> This is a conceptual demo. Shared Storage API
+            is not yet widely supported. This demo simulates how the API might
+            work for cross-site ad frequency capping.
+        </div>
+
+        <button onclick="simulateAdView()">Simulate Ad View</button>
+        <button onclick="checkAdFrequency()">Check Ad Frequency</button>
+        <button onclick="resetAdViews()">Reset Ad Views</button>
+        <button onclick="simulateSiteChange()">Simulate Site Change</button>
+
+        <div id="adSpace">Ad Space</div>
+        <div id="output"></div>
+
+        <script>
+            // Simulated Shared Storage
+            const simulatedSharedStorage = {
+                data: new Map(),
+                async set(key, value) {
+                    this.data.set(key, value);
+                    return Promise.resolve();
+                },
+                async get(key) {
+                    return Promise.resolve(this.data.get(key));
+                },
+                async clear() {
+                    this.data.clear();
+                    return Promise.resolve();
+                },
+            };
+
+            // Simulated worklet for frequency capping
+            const frequencyCapWorklet = {
+                async run() {
+                    let adViews =
+                        (await simulatedSharedStorage.get("adViews")) || 0;
+                    adViews++;
+                    await simulatedSharedStorage.set("adViews", adViews);
+                    return adViews <= 5; // Cap at 5 views
+                },
+            };
+
+            let currentSite = "Site A";
+
+            async function simulateAdView() {
+                const canShowAd = await frequencyCapWorklet.run();
+                if (canShowAd) {
+                    document.getElementById(
+                        "adSpace"
+                    ).textContent = `Ad shown on ${currentSite}`;
+                    updateOutput(
+                        `Ad viewed on ${currentSite}. Frequency updated.`
+                    );
+                } else {
+                    document.getElementById("adSpace").textContent =
+                        "Ad frequency cap reached";
+                    updateOutput("Ad view limit reached. Ad not shown.");
+                }
+            }
+
+            async function checkAdFrequency() {
+                const adViews =
+                    (await simulatedSharedStorage.get("adViews")) || 0;
+                updateOutput(`Current ad view count across sites: ${adViews}`);
+            }
+
+            async function resetAdViews() {
+                await simulatedSharedStorage.set("adViews", 0);
+                document.getElementById("adSpace").textContent = "Ad Space";
+                updateOutput("Ad view count reset to 0 for all sites");
+            }
+
+            function simulateSiteChange() {
+                currentSite = currentSite === "Site A" ? "Site B" : "Site A";
+                document.getElementById("adSpace").textContent = "Ad Space";
+                updateOutput(`Switched to ${currentSite}`);
+            }
+
+            function updateOutput(message) {
+                document.getElementById("output").textContent = message;
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>IndexedDB Demo</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            h1,
+            h2 {
+                color: #2c3e50;
+            }
+            .form-group {
+                margin-bottom: 15px;
+            }
+            label {
+                display: block;
+                margin-bottom: 5px;
+            }
+            input[type="text"],
+            input[type="number"] {
+                width: 100%;
+                padding: 8px;
+                box-sizing: border-box;
+            }
+            button {
+                background-color: #3498db;
+                color: white;
+                padding: 10px 15px;
+                border: none;
+                cursor: pointer;
+                margin-right: 5px;
+            }
+            button:hover {
+                background-color: #2980b9;
+            }
+            #bookList {
+                background-color: #f2f2f2;
+                padding: 15px;
+                margin-top: 20px;
+                border-radius: 5px;
+            }
+            .book-item {
+                background-color: #fff;
+                padding: 10px;
+                margin-bottom: 10px;
+                border-radius: 3px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>IndexedDB Book Store Demo</h1>
+
+        <div class="form-group">
+            <label for="titleInput">Title:</label>
+            <input type="text" id="titleInput" placeholder="Enter book title" />
+        </div>
+
+        <div class="form-group">
+            <label for="authorInput">Author:</label>
+            <input
+                type="text"
+                id="authorInput"
+                placeholder="Enter author name"
+            />
+        </div>
+
+        <div class="form-group">
+            <label for="yearInput">Year:</label>
+            <input
+                type="number"
+                id="yearInput"
+                placeholder="Enter publication year"
+            />
+        </div>
+
+        <button onclick="addBook()">Add Book</button>
+        <button onclick="getAllBooks()">Get All Books</button>
+        <button onclick="searchByTitle()">Search by Title</button>
+        <button onclick="clearDatabase()">Clear Database</button>
+
+        <div id="bookList">
+            <h2>Book List:</h2>
+        </div>
+
+        <script>
+            let db;
+            const DB_NAME = "BookStoreDB";
+            const DB_VERSION = 1;
+            const STORE_NAME = "books";
+
+            function openDatabase() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                    request.onerror = (event) =>
+                        reject("IndexedDB error: " + event.target.error);
+
+                    request.onsuccess = (event) => {
+                        db = event.target.result;
+                        resolve(db);
+                    };
+
+                    request.onupgradeneeded = (event) => {
+                        db = event.target.result;
+                        const objectStore = db.createObjectStore(STORE_NAME, {
+                            keyPath: "id",
+                            autoIncrement: true,
+                        });
+                        objectStore.createIndex("title", "title", {
+                            unique: false,
+                        });
+                        objectStore.createIndex("author", "author", {
+                            unique: false,
+                        });
+                        objectStore.createIndex("year", "year", {
+                            unique: false,
+                        });
+                    };
+                });
+            }
+
+            function addBook() {
+                const title = document.getElementById("titleInput").value;
+                const author = document.getElementById("authorInput").value;
+                const year = parseInt(
+                    document.getElementById("yearInput").value
+                );
+
+                if (!title || !author || isNaN(year)) {
+                    alert("Please fill all fields correctly.");
+                    return;
+                }
+
+                const transaction = db.transaction([STORE_NAME], "readwrite");
+                const objectStore = transaction.objectStore(STORE_NAME);
+                const request = objectStore.add({ title, author, year });
+
+                request.onerror = (event) =>
+                    console.error("Error adding book:", event.target.error);
+                request.onsuccess = (event) => {
+                    alert("Book added successfully!");
+                    clearInputs();
+                    getAllBooks();
+                };
+            }
+
+            function getAllBooks() {
+                const objectStore = db
+                    .transaction(STORE_NAME)
+                    .objectStore(STORE_NAME);
+                const request = objectStore.getAll();
+
+                request.onerror = (event) =>
+                    console.error("Error fetching books:", event.target.error);
+                request.onsuccess = (event) =>
+                    displayBooks(event.target.result);
+            }
+
+            function searchByTitle() {
+                const searchTitle = prompt("Enter the title to search for:");
+                if (!searchTitle) return;
+
+                const objectStore = db
+                    .transaction(STORE_NAME)
+                    .objectStore(STORE_NAME);
+                const index = objectStore.index("title");
+                const request = index.getAll(searchTitle);
+
+                request.onerror = (event) =>
+                    console.error("Error searching books:", event.target.error);
+                request.onsuccess = (event) =>
+                    displayBooks(event.target.result);
+            }
+
+            function clearDatabase() {
+                if (
+                    !confirm(
+                        "Are you sure you want to clear the entire database?"
+                    )
+                )
+                    return;
+
+                const transaction = db.transaction([STORE_NAME], "readwrite");
+                const objectStore = transaction.objectStore(STORE_NAME);
+                const request = objectStore.clear();
+
+                request.onerror = (event) =>
+                    console.error(
+                        "Error clearing database:",
+                        event.target.error
+                    );
+                request.onsuccess = (event) => {
+                    alert("Database cleared successfully!");
+                    getAllBooks();
+                };
+            }
+
+            function displayBooks(books) {
+                const bookList = document.getElementById("bookList");
+                bookList.innerHTML = "<h2>Book List:</h2>";
+
+                books.forEach((book) => {
+                    const bookItem = document.createElement("div");
+                    bookItem.className = "book-item";
+                    bookItem.innerHTML = `
+                    <strong>${book.title}</strong> by ${book.author} (${book.year})
+                    <button onclick="deleteBook(${book.id})">Delete</button>
+                `;
+                    bookList.appendChild(bookItem);
+                });
+            }
+
+            function deleteBook(id) {
+                const transaction = db.transaction([STORE_NAME], "readwrite");
+                const objectStore = transaction.objectStore(STORE_NAME);
+                const request = objectStore.delete(id);
+
+                request.onerror = (event) =>
+                    console.error("Error deleting book:", event.target.error);
+                request.onsuccess = (event) => {
+                    alert("Book deleted successfully!");
+                    getAllBooks();
+                };
+            }
+
+            function clearInputs() {
+                document.getElementById("titleInput").value = "";
+                document.getElementById("authorInput").value = "";
+                document.getElementById("yearInput").value = "";
+            }
+
+            // Initialize the database when the page loads
+            openDatabase()
+                .then(() => {
+                    console.log("Database opened successfully");
+                    getAllBooks();
+                })
+                .catch((error) => {
+                    console.error("Error opening database:", error);
+                });
+        </script>
+    </body>
+</html>

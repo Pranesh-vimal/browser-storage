@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Session Storage Demo</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            h1 {
+                color: #2c3e50;
+            }
+            .form-group {
+                margin-bottom: 15px;
+            }
+            label {
+                display: block;
+                margin-bottom: 5px;
+            }
+            input[type="text"],
+            textarea {
+                width: 100%;
+                padding: 8px;
+                box-sizing: border-box;
+            }
+            button {
+                background-color: #e74c3c;
+                color: white;
+                padding: 10px 15px;
+                border: none;
+                cursor: pointer;
+                margin-right: 5px;
+            }
+            button:hover {
+                background-color: #c0392b;
+            }
+            #storedData {
+                background-color: #f2f2f2;
+                padding: 15px;
+                margin-top: 20px;
+                border-radius: 5px;
+            }
+            #sessionInfo {
+                background-color: #e8f8f5;
+                padding: 15px;
+                margin-top: 20px;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Session Storage Demo</h1>
+
+        <div class="form-group">
+            <label for="keyInput">Key:</label>
+            <input type="text" id="keyInput" placeholder="Enter key" />
+        </div>
+
+        <div class="form-group">
+            <label for="valueInput">Value:</label>
+            <textarea id="valueInput" placeholder="Enter value"></textarea>
+        </div>
+
+        <button onclick="saveToSessionStorage()">
+            Save to Session Storage
+        </button>
+        <button onclick="getFromSessionStorage()">
+            Get from Session Storage
+        </button>
+        <button onclick="removeFromSessionStorage()">
+            Remove from Session Storage
+        </button>
+        <button onclick="clearSessionStorage()">
+            Clear All Session Storage
+        </button>
+
+        <div id="storedData">
+            <h2>Stored Data:</h2>
+            <pre id="dataDisplay"></pre>
+        </div>
+
+        <div id="sessionInfo">
+            <h2>Session Information:</h2>
+            <p>Session ID: <span id="sessionId"></span></p>
+            <p>Session start time: <span id="sessionStartTime"></span></p>
+        </div>
+
+        <script>
+            function saveToSessionStorage() {
+                const key = document.getElementById("keyInput").value;
+                const value = document.getElementById("valueInput").value;
+                if (key && value) {
+                    sessionStorage.setItem(key, value);
+                    alert("Data saved to Session Storage!");
+                    displayAllData();
+                } else {
+                    alert("Please enter both key and value.");
+                }
+            }
+
+            function getFromSessionStorage() {
+                const key = document.getElementById("keyInput").value;
+                if (key) {
+                    const value = sessionStorage.getItem(key);
+                    if (value !== null) {
+                        document.getElementById("valueInput").value = value;
+                        alert("Data retrieved from Session Storage!");
+                    } else {
+                        alert("No data found for this key.");
+                    }
+                } else {
+                    alert("Please enter a key to retrieve.");
+                }
+            }
+
+            function removeFromSessionStorage() {
+                const key = document.getElementById("keyInput").value;
+                if (key) {
+                    if (sessionStorage.getItem(key) !== null) {
+                        sessionStorage.removeItem(key);
+                        alert("Data removed from Session Storage!");
+                        document.getElementById("valueInput").value = "";
+                        displayAllData();
+                    } else {
+                        alert("No data found for this key.");
+                    }
+                } else {
+                    alert("Please enter a key to remove.");
+                }
+            }
+
+            function clearSessionStorage() {
+                if (
+                    confirm(
+                        "Are you sure you want to clear all Session Storage data?"
+                    )
+                ) {
+                    sessionStorage.clear();
+                    alert("All data cleared from Session Storage!");
+                    document.getElementById("keyInput").value = "";
+                    document.getElementById("valueInput").value = "";
+                    displayAllData();
+                }
+            }
+
+            function displayAllData() {
+                const dataDisplay = document.getElementById("dataDisplay");
+                dataDisplay.innerHTML = "";
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    const value = sessionStorage.getItem(key);
+                    dataDisplay.innerHTML += `${key}: ${value}\n`;
+                }
+            }
+
+            function generateSessionId() {
+                return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+                    /[xy]/g,
+                    function (c) {
+                        var r = (Math.random() * 16) | 0,
+                            v = c == "x" ? r : (r & 0x3) | 0x8;
+                        return v.toString(16);
+                    }
+                );
+            }
+
+            function initializeSession() {
+                if (!sessionStorage.getItem("sessionId")) {
+                    sessionStorage.setItem("sessionId", generateSessionId());
+                    sessionStorage.setItem(
+                        "sessionStartTime",
+                        new Date().toLocaleString()
+                    );
+                }
+                document.getElementById("sessionId").textContent =
+                    sessionStorage.getItem("sessionId");
+                document.getElementById("sessionStartTime").textContent =
+                    sessionStorage.getItem("sessionStartTime");
+            }
+
+            // Initialize session and display stored data
+            initializeSession();
+            displayAllData();
+        </script>
+    </body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Task Manager with Simulated Storage Bucket</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            h1,
+            h2 {
+                color: #2c3e50;
+            }
+            .note {
+                background-color: #fff3cd;
+                border: 1px solid #ffeeba;
+                border-radius: 5px;
+                padding: 10px;
+                margin-bottom: 20px;
+            }
+            #taskForm,
+            #taskList,
+            #storageInfo,
+            #simulatedStorageDisplay {
+                background-color: #f2f2f2;
+                padding: 15px;
+                margin-top: 20px;
+                border-radius: 5px;
+            }
+            input,
+            select,
+            button {
+                margin: 5px 0;
+                padding: 5px;
+            }
+            button {
+                background-color: #3498db;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+            button:hover {
+                background-color: #2980b9;
+            }
+            .task-item {
+                background-color: white;
+                padding: 10px;
+                margin: 5px 0;
+                border-radius: 5px;
+            }
+            .high-priority {
+                border-left: 5px solid #e74c3c;
+            }
+            .medium-priority {
+                border-left: 5px solid #f39c12;
+            }
+            .low-priority {
+                border-left: 5px solid #2ecc71;
+            }
+            #simulatedStorageDisplay {
+                white-space: pre-wrap;
+                word-break: break-all;
+                font-family: monospace;
+                font-size: 12px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Task Manager with Simulated Storage Bucket</h1>
+
+        <div class="note">
+            <strong>Note:</strong> This is a simulated demo. The Storage Bucket
+            API is not yet implemented in browsers. This demo simulates how the
+            API might work in a task management application.
+        </div>
+
+        <div id="taskForm">
+            <h2>Add New Task</h2>
+            <input type="text" id="taskName" placeholder="Task name" />
+            <select id="taskPriority">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+            </select>
+            <input
+                type="number"
+                id="taskExpiration"
+                placeholder="Expiration (days)"
+            />
+            <button onclick="addTask()">Add Task</button>
+        </div>
+
+        <div id="taskList">
+            <h2>Tasks</h2>
+            <!-- Tasks will be displayed here -->
+        </div>
+
+        <div id="storageInfo">
+            <h2>Storage Information</h2>
+            <p>Used Storage: <span id="usedStorage">0</span> bytes</p>
+            <p>Storage Quota: <span id="storageQuota">0</span> bytes</p>
+            <button onclick="persistBucket()">Persist Bucket</button>
+        </div>
+
+        <div id="simulatedStorageDisplay">
+            <h2>Simulated Storage Content</h2>
+            <!-- Simulated storage content will be displayed here -->
+        </div>
+
+        <script>
+            // Simulated Storage Bucket API
+            class StorageBucket {
+                constructor(name) {
+                    this.name = name;
+                    this.data = new Map();
+                    this.persisted = false;
+                    this.quota = 1024 * 1024 * 5; // 5MB simulated quota
+                }
+
+                async put(key, value, options = {}) {
+                    const expiresAt = options.expirationTtl
+                        ? Date.now() + options.expirationTtl
+                        : null;
+                    this.data.set(key, { value, expiresAt });
+                    return Promise.resolve();
+                }
+
+                async get(key) {
+                    const entry = this.data.get(key);
+                    if (
+                        entry &&
+                        (!entry.expiresAt || entry.expiresAt > Date.now())
+                    ) {
+                        return Promise.resolve(entry.value);
+                    }
+                    return Promise.resolve(null);
+                }
+
+                async delete(key) {
+                    this.data.delete(key);
+                    return Promise.resolve();
+                }
+
+                async persist() {
+                    this.persisted = true;
+                    return Promise.resolve();
+                }
+
+                async estimate() {
+                    const used = JSON.stringify([...this.data]).length;
+                    return Promise.resolve({
+                        usageDetails: { userVisible: used },
+                        quota: this.quota,
+                    });
+                }
+            }
+
+            // Simulated navigator.storage API
+            const simulatedStorage = {
+                async bucket(name) {
+                    return new StorageBucket(name);
+                },
+            };
+
+            let taskBucket;
+
+            async function initializeBucket() {
+                taskBucket = await simulatedStorage.bucket("task-manager");
+                updateStorageInfo();
+                updateSimulatedStorageDisplay();
+            }
+
+            async function addTask() {
+                const name = document.getElementById("taskName").value;
+                const priority = document.getElementById("taskPriority").value;
+                const expiration =
+                    document.getElementById("taskExpiration").value;
+
+                if (!name) {
+                    alert("Please enter a task name");
+                    return;
+                }
+
+                const task = { name, priority, createdAt: Date.now() };
+                const expirationMs = expiration
+                    ? parseInt(expiration) * 24 * 60 * 60 * 1000
+                    : null;
+
+                await taskBucket.put(`task_${Date.now()}`, task, {
+                    expirationTtl: expirationMs,
+                });
+                await displayTasks();
+                updateStorageInfo();
+                updateSimulatedStorageDisplay();
+
+                // Clear input fields
+                document.getElementById("taskName").value = "";
+                document.getElementById("taskExpiration").value = "";
+            }
+
+            async function displayTasks() {
+                const taskList = document.getElementById("taskList");
+                taskList.innerHTML = "<h2>Tasks</h2>";
+
+                for (const [key, { value: task }] of taskBucket.data) {
+                    if (await taskBucket.get(key)) {
+                        // Check if task hasn't expired
+                        const taskElement = document.createElement("div");
+                        taskElement.className = `task-item ${task.priority}-priority`;
+                        taskElement.innerHTML = `
+                        <strong>${task.name}</strong> (Priority: ${task.priority})
+                        <button onclick="deleteTask('${key}')">Delete</button>
+                    `;
+                        taskList.appendChild(taskElement);
+                    }
+                }
+            }
+
+            async function deleteTask(key) {
+                await taskBucket.delete(key);
+                await displayTasks();
+                updateStorageInfo();
+                updateSimulatedStorageDisplay();
+            }
+
+            async function persistBucket() {
+                await taskBucket.persist();
+                alert("Task bucket persisted (simulated)");
+                updateSimulatedStorageDisplay();
+            }
+
+            async function updateStorageInfo() {
+                const estimate = await taskBucket.estimate();
+                document.getElementById("usedStorage").textContent =
+                    estimate.usageDetails.userVisible;
+                document.getElementById("storageQuota").textContent =
+                    estimate.quota;
+            }
+
+            function updateSimulatedStorageDisplay() {
+                const storageDisplay = document.getElementById(
+                    "simulatedStorageDisplay"
+                );
+                storageDisplay.innerHTML = "<h2>Simulated Storage Content</h2>";
+                const pre = document.createElement("pre");
+                pre.textContent = JSON.stringify(
+                    Array.from(taskBucket.data.entries()),
+                    null,
+                    2
+                );
+                storageDisplay.appendChild(pre);
+            }
+
+            // Initialize the bucket when the page loads
+            initializeBucket().then(displayTasks);
+        </script>
+    </body>
+</html>

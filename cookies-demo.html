@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Cookies Demo</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            h1,
+            h2 {
+                color: #2c3e50;
+            }
+            .form-group {
+                margin-bottom: 15px;
+            }
+            label {
+                display: block;
+                margin-bottom: 5px;
+            }
+            input[type="text"],
+            input[type="number"] {
+                width: 100%;
+                padding: 8px;
+                box-sizing: border-box;
+            }
+            button {
+                background-color: #3498db;
+                color: white;
+                padding: 10px 15px;
+                border: none;
+                cursor: pointer;
+                margin-right: 5px;
+                margin-bottom: 5px;
+            }
+            button:hover {
+                background-color: #2980b9;
+            }
+            #cookieList {
+                background-color: #f2f2f2;
+                padding: 15px;
+                margin-top: 20px;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Cookies Demo</h1>
+
+        <div class="form-group">
+            <label for="nameInput">Cookie Name:</label>
+            <input type="text" id="nameInput" placeholder="Enter cookie name" />
+        </div>
+
+        <div class="form-group">
+            <label for="valueInput">Cookie Value:</label>
+            <input
+                type="text"
+                id="valueInput"
+                placeholder="Enter cookie value"
+            />
+        </div>
+
+        <div class="form-group">
+            <label for="expiresInput">Expires (days):</label>
+            <input
+                type="number"
+                id="expiresInput"
+                placeholder="Enter number of days"
+            />
+        </div>
+
+        <button onclick="setCookie()">Set Cookie</button>
+        <button onclick="getCookie()">Get Cookie</button>
+        <button onclick="deleteCookie()">Delete Cookie</button>
+        <button onclick="listAllCookies()">List All Cookies</button>
+        <button onclick="setSecureCookie()">Set Secure Cookie</button>
+        <button onclick="setHttpOnlyCookie()">Set HttpOnly Cookie</button>
+
+        <div id="cookieList">
+            <h2>Cookie List:</h2>
+            <pre id="cookieDisplay"></pre>
+        </div>
+
+        <script>
+            function setCookie(
+                name,
+                value,
+                days,
+                path = "/",
+                secure = false,
+                httpOnly = false
+            ) {
+                name = name || document.getElementById("nameInput").value;
+                value = value || document.getElementById("valueInput").value;
+                days = days || document.getElementById("expiresInput").value;
+
+                if (!name || !value) {
+                    alert("Please enter both cookie name and value.");
+                    return;
+                }
+
+                let expires = "";
+                if (days) {
+                    const date = new Date();
+                    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+                    expires = "; expires=" + date.toUTCString();
+                }
+
+                let cookieString =
+                    name +
+                    "=" +
+                    encodeURIComponent(value) +
+                    expires +
+                    "; path=" +
+                    path;
+                if (secure) cookieString += "; secure";
+                if (httpOnly) cookieString += "; httpOnly";
+
+                document.cookie = cookieString;
+                alert("Cookie set successfully!");
+                listAllCookies();
+            }
+
+            function getCookie() {
+                const name = document.getElementById("nameInput").value;
+                if (!name) {
+                    alert("Please enter a cookie name to retrieve.");
+                    return;
+                }
+
+                const nameEQ = name + "=";
+                const ca = document.cookie.split(";");
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) === " ") c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) === 0) {
+                        const value = decodeURIComponent(
+                            c.substring(nameEQ.length, c.length)
+                        );
+                        document.getElementById("valueInput").value = value;
+                        alert("Cookie found: " + value);
+                        return;
+                    }
+                }
+                alert("Cookie not found");
+            }
+
+            function deleteCookie() {
+                const name = document.getElementById("nameInput").value;
+                if (!name) {
+                    alert("Please enter a cookie name to delete.");
+                    return;
+                }
+
+                document.cookie =
+                    name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                alert("Cookie deleted successfully!");
+                listAllCookies();
+            }
+
+            function listAllCookies() {
+                const cookieDisplay = document.getElementById("cookieDisplay");
+                cookieDisplay.textContent = document.cookie
+                    .split(";")
+                    .map((cookie) => cookie.trim())
+                    .join("\n");
+            }
+
+            function setSecureCookie() {
+                setCookie(null, null, null, "/", true, false);
+            }
+
+            function setHttpOnlyCookie() {
+                setCookie(null, null, null, "/", false, true);
+            }
+
+            // Initial display of cookies
+            listAllCookies();
+        </script>
+    </body>
+</html>

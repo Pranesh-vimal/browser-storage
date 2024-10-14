@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Local Storage Demo</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            h1 {
+                color: #2c3e50;
+            }
+            .form-group {
+                margin-bottom: 15px;
+            }
+            label {
+                display: block;
+                margin-bottom: 5px;
+            }
+            input[type="text"],
+            textarea {
+                width: 100%;
+                padding: 8px;
+                box-sizing: border-box;
+            }
+            button {
+                background-color: #3498db;
+                color: white;
+                padding: 10px 15px;
+                border: none;
+                cursor: pointer;
+            }
+            button:hover {
+                background-color: #2980b9;
+            }
+            #storedData {
+                background-color: #f2f2f2;
+                padding: 15px;
+                margin-top: 20px;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Local Storage Demo</h1>
+
+        <div class="form-group">
+            <label for="keyInput">Key:</label>
+            <input type="text" id="keyInput" placeholder="Enter key" />
+        </div>
+
+        <div class="form-group">
+            <label for="valueInput">Value:</label>
+            <textarea id="valueInput" placeholder="Enter value"></textarea>
+        </div>
+
+        <button onclick="saveToLocalStorage()">Save to Local Storage</button>
+        <button onclick="getFromLocalStorage()">Get from Local Storage</button>
+        <button onclick="removeFromLocalStorage()">
+            Remove from Local Storage
+        </button>
+        <button onclick="clearLocalStorage()">Clear All Local Storage</button>
+
+        <div id="storedData">
+            <h2>Stored Data:</h2>
+            <pre id="dataDisplay"></pre>
+        </div>
+
+        <script>
+            function saveToLocalStorage() {
+                const key = document.getElementById("keyInput").value;
+                const value = document.getElementById("valueInput").value;
+                if (key && value) {
+                    localStorage.setItem(key, value);
+                    alert("Data saved to Local Storage!");
+                    displayAllData();
+                } else {
+                    alert("Please enter both key and value.");
+                }
+            }
+
+            function getFromLocalStorage() {
+                const key = document.getElementById("keyInput").value;
+                if (key) {
+                    const value = localStorage.getItem(key);
+                    if (value !== null) {
+                        document.getElementById("valueInput").value = value;
+                        alert("Data retrieved from Local Storage!");
+                    } else {
+                        alert("No data found for this key.");
+                    }
+                } else {
+                    alert("Please enter a key to retrieve.");
+                }
+            }
+
+            function removeFromLocalStorage() {
+                const key = document.getElementById("keyInput").value;
+                if (key) {
+                    if (localStorage.getItem(key) !== null) {
+                        localStorage.removeItem(key);
+                        alert("Data removed from Local Storage!");
+                        document.getElementById("valueInput").value = "";
+                        displayAllData();
+                    } else {
+                        alert("No data found for this key.");
+                    }
+                } else {
+                    alert("Please enter a key to remove.");
+                }
+            }
+
+            function clearLocalStorage() {
+                if (
+                    confirm(
+                        "Are you sure you want to clear all Local Storage data?"
+                    )
+                ) {
+                    localStorage.clear();
+                    alert("All data cleared from Local Storage!");
+                    document.getElementById("keyInput").value = "";
+                    document.getElementById("valueInput").value = "";
+                    displayAllData();
+                }
+            }
+
+            function displayAllData() {
+                const dataDisplay = document.getElementById("dataDisplay");
+                dataDisplay.innerHTML = "";
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    const value = localStorage.getItem(key);
+                    dataDisplay.innerHTML += `${key}: ${value}\n`;
+                }
+            }
+
+            // Initial display of stored data
+            displayAllData();
+        </script>
+    </body>
+</html>
